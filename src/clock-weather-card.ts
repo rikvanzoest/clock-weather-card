@@ -19,6 +19,7 @@ import {
   type TemperatureSensor,
   type TemperatureUnit,
   type HumiditySensor,
+  type UvRatingSensor,
   type Weather,
   WeatherEntityFeature,
   type WeatherForecast,
@@ -216,11 +217,15 @@ export class ClockWeatherCard extends LitElement {
     const aqiBackgroundColor = this.getAqiBackgroundColor(aqi)
     const aqiTextColor = this.getAqiTextColor(aqi)
     const humidity = roundIfNotNull(this.getCurrentHumidity())
+    const uvRating = this.getuvrating()
+    const uvBackgroundColor = this.getUvBackgroundColor(uvRating)
+    const uvTextColor = this.getUvTextColor(uvRating)
     const iconType = this.config.weather_icon_type
     const icon = this.toIcon(state, iconType, false, this.getIconAnimationKind())
     const weatherString = this.localize(`weather.${state}`)
     const localizedTemp = temp !== null ? this.toConfiguredTempWithUnit(tempUnit, temp) : null
     const localizedHumidity = humidity !== null ? `${humidity}% ${this.localize('misc.humidity')}` : null
+    const localizedUvRating = uvrating !== null ? '$(uvrating)% ${this.localize('misc.uvrating')}` : null
     const localizedApparent = apparentTemp !== null ? this.toConfiguredTempWithUnit(tempUnit, apparentTemp) : null
     const apparentString = this.localize('misc.feels-like')
     const aqiString = this.localize('misc.aqi')
@@ -234,6 +239,7 @@ export class ClockWeatherCard extends LitElement {
           <clock-weather-card-today-right-wrap-top>
             ${this.config.hide_clock ? weatherString : localizedTemp ? `${weatherString}, ${localizedTemp}` : weatherString}
             ${this.config.show_humidity && localizedHumidity ? html`<br>${localizedHumidity}` : ''}
+            ${this.config.show_uvRating && localizedUvRating ? html`<br><uvRating style="background-color: ${uvBackgroundColor}; color: ${uvTextColor};">${uvRating} ${uvRatingString}</uvRating>` : ''}
             ${this.config.apparent_sensor && apparentTemp ? html`<br>${apparentString}: ${localizedApparent}` : ''}
             ${this.config.aqi_sensor && aqi !== null ? html`<br><aqi style="background-color: ${aqiBackgroundColor}; color: ${aqiTextColor};">${aqi} ${aqiString}</aqi>` : ''}
           </clock-weather-card-today-right-wrap-top>
@@ -436,6 +442,7 @@ export class ClockWeatherCard extends LitElement {
       sun_entity: config.sun_entity ?? 'sun.sun',
       temperature_sensor: config.temperature_sensor,
       humidity_sensor: config.humidity_sensor,
+      uvrating_sensor: config.uvrating_sensor,
       weather_icon_type: config.weather_icon_type ?? 'line',
       forecast_rows: config.forecast_rows ?? 5,
       hourly_forecast: config.hourly_forecast ?? false,
@@ -443,6 +450,7 @@ export class ClockWeatherCard extends LitElement {
       time_format: config.time_format?.toString() as '12' | '24' | undefined,
       time_pattern: config.time_pattern ?? undefined,
       show_humidity: config.show_humidity ?? false,
+      show_uvrating: config.show_uvrating ?? false,
       hide_forecast_section: config.hide_forecast_section ?? false,
       hide_today_section: config.hide_today_section ?? false,
       hide_clock: config.hide_clock ?? false,
@@ -498,6 +506,35 @@ export class ClockWeatherCard extends LitElement {
     return this.getWeather().attributes.humidity ?? null
   }
 
+  private.getCurrentUvRating (): number | null {
+    if (this.config.uvRating_sensor) {
+      const UvRatingSensor = this.hass.states[this.config.uvrating_sensor] as UvRatingSensor | undefined
+      const uvrating = UvRatingSensor?.state ? praseFloat(uvRatingSensor.state) : undefined
+      if (uvrating !== undefinded && !isNaN(uvrating) {
+        return uvrating
+      }
+    }
+      
+    // Return weather uvrating if the code could not extract uvrating from the uvRating_sensor
+    return this.getWeather().attributes.uvrating ?? null
+  }
+
+  private getUvBackgroundColor (uvRating: number | null): string | null {
+    if (uvRating == null) {
+      return null
+    }
+    if (uvRating == 1 || uvRating ==  2) return '#5CE65C'
+    if (uvRating == 3 || uvRating == 4 || uvRating == 5 ) return '#FFDE21'
+    if (uvRating == 6 || uvRating == 7) return '#FFA500'
+    if (uvRating == 8 || uvRating == 9 ||uvRating == 10) return '#FF2C2C'
+    if (uvRating <= 11) return '#7F00FF'
+  }
+
+  private getUvTextColor (uvRating: number | null): string {
+    return '#FFFFFF'
+  }
+
+      
   private getApparentTemperature (): number | null {
     if (this.config.apparent_sensor) {
       const apparentSensor = this.hass.states[this.config.apparent_sensor] as TemperatureSensor | undefined
