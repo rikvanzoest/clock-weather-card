@@ -75,7 +75,7 @@ export interface Weather extends HassEntity {
     temperature?: number
     temperature_unit: TemperatureUnit
     humidity?: number
-    uvRating?: number
+    uvrating?: number
     precipitation_unit: string
     forecast?: WeatherForecast[]
     supported_features: WeatherEntityFeature
