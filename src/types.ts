@@ -25,7 +25,7 @@ export interface ClockWeatherCardConfig extends LovelaceCardConfig {
   hide_today_section?: boolean
   hide_forecast_section?: boolean
   show_humidity?: boolean
-  show_uvRating?: boolean
+  show_uvrating?: boolean
   hourly_forecast?: boolean
   hide_clock?: boolean
   hide_date?: boolean
@@ -52,7 +52,7 @@ export interface MergedClockWeatherCardConfig extends LovelaceCardConfig {
   hide_today_section: boolean
   hide_forecast_section: boolean
   show_humidity: boolean
-  show_uvRating: boolean
+  show_uvrating: boolean
   hourly_forecast: boolean
   hide_clock: boolean
   hide_date: boolean
